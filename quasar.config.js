@@ -36,7 +36,9 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-webpack/quasar-config-file#build
     build: {
-      publicPath: '/VersionControl2/',
+      // publicPath should match the GitHub repository name (case-sensitive)
+      // so built assets are requested from the correct URL on GitHub Pages.
+      publicPath: '/Versioncontrol2/',
       vueRouterMode: 'hash', // available values: 'hash', 'history'
 
       // webpackTranspile: false,
