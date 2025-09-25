@@ -1,34 +1,39 @@
-name: Deploy Quasar SPA to GitHub Pages
-
+# deploy.yml
+name: CI/CD Pipeline for Quasar
 on:
   push:
-    # 📌 ตรวจสอบ branch ที่โค้ดต้นฉบับอยู่ (อาจเป็น master, main, หรือ gh-pages)
-    branches: [ "master" ] 
-
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
 jobs:
-  build-and-deploy:
+  build-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write 
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Cache node_modules
+        uses: actions/cache@v3
         with:
-          node-version: '20'
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-      - name: Install dependencies
-        run: npm install
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-      - name: Build Quasar SPA with Base Path
-        # บังคับ Base Path ให้ตรงกับชื่อ Repository (ต้องมี / นำหน้าและต่อท้าย)
-        run: npx quasar build --public-path /Versioncontrol2/ 
+      - name: Install and Build
+        run: |
+          npm install
+          npx quasar build
+
+      - name: Copy index.html to 404.html
+        if: github.ref == 'refs/heads/master'
+        run: cp dist/spa/index.html dist/spa/404.html
 
       - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist/spa
