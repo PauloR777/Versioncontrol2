@@ -1,7 +1,7 @@
-# deploy.yml
 name: CI/CD Pipeline for Quasar
 on:
   push:
+    # 📌 ตรวจสอบให้แน่ใจว่าเป็น branch ที่โค้ดต้นฉบับอยู่
     branches: [ "master", "main" ]
   pull_request:
     branches: [ "master", "main" ]
@@ -21,19 +21,18 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20' # ใช้ Node.js เวอร์ชัน 20
 
       - name: Install and Build
         run: |
           npm install
-          npx quasar build
-
-      - name: Copy index.html to 404.html
-        if: github.ref == 'refs/heads/master'
-        run: cp dist/spa/index.html dist/spa/404.html
+          # 💡 แก้ไข: เพิ่ม --public-path เพื่อกำหนดเส้นทางสำหรับ GitHub Pages
+          npx quasar build --public-path /Versioncontrol2/
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/master'
+        # 💡 ไม่จำเป็นต้องมีเงื่อนไข if: เพราะ action นี้จะทำงานก็ต่อเมื่อมีการ push เท่านั้น
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist/spa
+          # publish_branch: gh-pages # ไม่ต้องระบุ หากต้องการให้ deploy ไปที่ branch ที่ตั้งค่าไว้ใน Settings
